@@ -98,6 +98,7 @@ def trigger_action():
     print("[*] Routine terminée. En attente d'une nouvelle frappe...")
 
 if __name__ == "__main__":
-    print("[*] Service Blue Team démarré. En attente de la touche '1'...")
-    keyboard.add_hotkey('1', trigger_action)
-    keyboard.wait()
+    print("[*] Lancement de l'analyse réseau (Scapy)...")
+    trafic, alertes = analyze_lan_traffic()
+    generate_pdf_report(trafic, alertes, CHEMIN_RAPPORT)
+    print("[+] Analyse terminée.")
