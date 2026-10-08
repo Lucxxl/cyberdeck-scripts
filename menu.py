@@ -24,6 +24,7 @@ def main():
         print("            CYBERDECK - INTERFACE V1.0            ")
         print("==================================================")
         print("  [a] - Analyse passive du LAN (Détection ARP)")
+        print("  [c] - Capture et Analyse de trames (Wireshark/PDF)")
         print("  [w] - Audit Wi-Fi (Analyse des vulnérabilités)")
         print("  [b] - Scan Bluetooth (Détection BLE)")
         print("  [q] - Quitter")
@@ -35,12 +36,35 @@ def main():
         
         if choix == 'a':
             print("\n[+] Démarrage du module d'Analyse LAN...\n")
-            # Lance ton script Scapy comme si tu le tapais dans le terminal
-            subprocess.run(["sudo", "python3", "/opt/cyberdeck/scan_net.py"])
+            # Récupère le chemin du dossier actuel pour lancer le bon script
+            dossier_actuel = os.path.dirname(os.path.abspath(__file__))
+            script_path = os.path.join(dossier_actuel, "scan_net.py")
+            # Lance le script !
+            subprocess.run(["sudo", "python3", script_path])
             input("\n[>] Appuyez sur Entrée pour revenir au menu...")
             
+
+        elif choix == 'c':
+            print("\n[+] Démarrage du module de Capture de Trames...\n")
+            
+            dossier_actuel = os.path.dirname(os.path.abspath(__file__))
+            script_path = os.path.join(dossier_actuel, "capture_analyse_trames.py")
+
+            # PAS de "sudo" ici ! On passe l'interface (i eth0) et la durée (-d 30)
+            subprocess.run(["python3", script_path, "-i", "wlan0", "-d", "30"])
+
+            input("\n[>] Appuyez sur Entrée pour revenir au menu...")
+
+
         elif choix == 'w':
-            print("\n[+] Module Wi-Fi en cours de développement...")
+            print("\n[+] Démarrage du module d'Audit Wi-Fi...\n")
+            
+            dossier_actuel = os.path.dirname(os.path.abspath(__file__))
+            script_path = os.path.join(dossier_actuel, "audit_wifi.py")
+            
+            # Lancement classique sans sudo
+            subprocess.run(["python3", script_path])
+            
             input("\n[>] Appuyez sur Entrée pour revenir au menu...")
             
         elif choix == 'b':
