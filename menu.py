@@ -24,6 +24,7 @@ def main():
         print("            CYBERDECK - INTERFACE V1.0            ")
         print("==================================================")
         print("  [a] - Analyse passive du LAN (Détection ARP)")
+        print("  [b] - Scan Bluetooth (Détection BLE)")
         print("  [c] - Capture et Analyse de trames (Wireshark/PDF)")
         print("  [w] - Audit Wi-Fi (Analyse des vulnérabilités)")
         print("  [b] - Scan Bluetooth (Détection BLE)")
@@ -43,6 +44,17 @@ def main():
             subprocess.run(["sudo", "python3", script_path])
             input("\n[>] Appuyez sur Entrée pour revenir au menu...")
             
+
+
+        elif choix == 'b':
+            print("\n[+] Démarrage du module de Reconnaissance Bluetooth...\n")
+            
+            dossier_actuel = os.path.dirname(os.path.abspath(__file__))
+            script_path = os.path.join(dossier_actuel, "scan_bluetooth.py")
+            
+            subprocess.run(["python3", script_path])
+            
+            input("\n[>] Appuyez sur Entrée pour revenir au menu...")
 
         elif choix == 'c':
             print("\n[+] Démarrage du module de Capture de Trames...\n")
