@@ -7,25 +7,25 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 
-CHEMIN_RAPPORT = "audit_wifi.pdf"
+CHEMIN_RAPPORT = "rapport_wifi_passif.pdf"
 
 def scan_wifi():
-    print("[*] Scan des réseaux Wi-Fi environnants en cours (Mode Passif)...")
+    print("[*] Scan passif des réseaux Wi-Fi environnants en cours...")
     try:
-        # nmcli liste les réseaux sans couper la connexion actuelle
+        # nmcli liste les réseaux sans interrompre la connexion en cours
         result = subprocess.run(
             ["nmcli", "-t", "-f", "SSID,BSSID,SIGNAL,SECURITY", "dev", "wifi", "list"],
             capture_output=True, text=True, check=True
         )
     except Exception as e:
-        print("[-] Erreur : Impossible d'utiliser la carte Wi-Fi. (Normal sur une VM sans adaptateur USB).")
+        print("[-] Erreur : Impossible d'utiliser la carte Wi-Fi. (Normal sur une VM).")
         return []
 
     networks = []
     for line in result.stdout.strip().split('\n'):
         if not line: continue
         
-        # nmcli échappe les deux points des adresses MAC (\:). On les remplace temporairement.
+        # nmcli échappe les deux points des adresses MAC (\:). On corrige le format.
         line_clean = line.replace('\\:', '-')
         parts = line_clean.split(':')
         
@@ -35,7 +35,7 @@ def scan_wifi():
             signal = parts[2]
             security = parts[3]
             
-            # Évaluation basique des vulnérabilités
+            # Évaluation basique pour le Red Team
             vuln_level = "Sécurisé"
             if not security or "OPEN" in security.upper() or security.strip() == "":
                 vuln_level = "CRITIQUE (Ouvert)"
@@ -44,7 +44,7 @@ def scan_wifi():
                 
             networks.append([ssid, bssid, f"{signal}%", security, vuln_level])
             
-    # Tri des réseaux par puissance de signal (du plus proche au plus éloigné)
+    # Tri par puissance de signal
     networks.sort(key=lambda x: int(x[2].strip('%')) if x[2].strip('%').isdigit() else 0, reverse=True)
     return networks
 
@@ -57,19 +57,17 @@ def generate_pdf(networks, output_path):
     elements = []
     date_scan = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    elements.append(Paragraph("Rapport d'Audit Wi-Fi", styles['CenterTitle']))
+    elements.append(Paragraph("Footprinting Wi-Fi (Scan Passif)", styles['CenterTitle']))
     elements.append(Paragraph(f"Date : {date_scan}", styles['Normal']))
     elements.append(Spacer(1, 15))
     
     if not networks:
-        elements.append(Paragraph("Aucun réseau détecté. Vérifiez que la carte Wi-Fi est active.", styles['Normal']))
+        elements.append(Paragraph("Aucun réseau détecté. Vérifiez l'interface Wi-Fi.", styles['Normal']))
     else:
-        # En-têtes du tableau
-        data = [["SSID (Nom du réseau)", "BSSID (Adresse MAC)", "Signal", "Chiffrement", "Vulnérabilité"]]
+        data = [["SSID (Nom)", "BSSID (MAC)", "Signal", "Chiffrement", "Vulnérabilité"]]
         data.extend(networks)
         
         table = Table(data, colWidths=[120, 100, 40, 100, 100])
-        
         ts = TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#23395d")),
             ('TEXTCOLOR', (0,0), (-1,0), colors.white),
@@ -80,7 +78,7 @@ def generate_pdf(networks, output_path):
             ('PADDING', (0,0), (-1,-1), 5),
         ])
         
-        # Coloration conditionnelle pour mettre en évidence les réseaux vulnérables
+        # Coloration des cibles potentielles
         for i, row in enumerate(networks, start=1):
             if "CRITIQUE" in row[4]:
                 ts.add('BACKGROUND', (4, i), (4, i), colors.red)
